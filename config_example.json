@@ -1,0 +1,23 @@
+{
+    "translators": [
+        {
+            "name": "Google",
+            "envs": {}
+        },
+        {
+            "name": "DeepL",
+            "envs": {
+                "DEEPL_API_KEY": ""
+            }
+        },
+        {
+            "name": "OpenAI",
+            "envs": {
+                "OPENAI_API_KEY": "",
+                "OPENAI_MODEL": "gpt-3.5-turbo"
+            }
+        }
+    ],
+    "PDF2ZH_LANG_FROM": "English",
+    "PDF2ZH_LANG_TO": "Simplified Chinese"
+}
