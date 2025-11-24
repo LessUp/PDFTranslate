@@ -660,6 +660,12 @@ with gr.Blocks(
             def on_vfont_change(value):
                 ConfigManager.set("PDF2ZH_VFONT", value)
                 return value
+            
+            def translate_test_file(*args):
+                args = list(args)
+                # Force page range to "First 5 pages"
+                args[6] = "First 5 pages"
+                return translate_file(*args)
 
             output_title = gr.Markdown("## Translated", visible=False)
             output_file_mono = gr.File(
@@ -672,8 +678,13 @@ with gr.Blocks(
                 label="reCAPTCHA Response", elem_id="verify", visible=False
             )
             recaptcha_box = gr.HTML('<div id="recaptcha-box"></div>')
-            translate_btn = gr.Button("Translate", variant="primary")
-            cancellation_btn = gr.Button("Cancel", variant="secondary")
+            translate_btn = gr.Button("Translate Full Document", variant="primary")
+            test_btn = gr.Button("🧪 Test Translate (First 5 Pages)", variant="secondary")
+            cancellation_btn = gr.Button("Cancel", variant="stop")
+            
+            with gr.Accordion("Status Log", open=True):
+                status_log = gr.Markdown("Ready to translate...")
+            
             tech_details_tog = gr.Markdown(
                 tech_details_string,
                 elem_classes=["secondary-text"],
@@ -706,7 +717,7 @@ with gr.Blocks(
                 ),
             )
 
-        with gr.Column(scale=2):
+        with gr.Column(scale=3):
             gr.Markdown("## Preview")
             preview = PDF(label="Document Preview", visible=True, height=2000)
 
@@ -733,37 +744,48 @@ with gr.Blocks(
     )
 
     state = gr.State({"session_id": None})
+    
+    translate_inputs = [
+        file_type,
+        file_input,
+        link_input,
+        service,
+        lang_from,
+        lang_to,
+        page_range,
+        page_input,
+        prompt,
+        threads,
+        skip_subset_fonts,
+        ignore_cache,
+        vfont,
+        use_babeldoc,
+        recaptcha_response,
+        state,
+        *envs,
+    ]
+    
+    translate_outputs = [
+        output_file_mono,
+        preview,
+        output_file_dual,
+        output_file_mono,
+        output_file_dual,
+        output_title,
+    ]
 
     translate_btn.click(
         translate_file,
-        inputs=[
-            file_type,
-            file_input,
-            link_input,
-            service,
-            lang_from,
-            lang_to,
-            page_range,
-            page_input,
-            prompt,
-            threads,
-            skip_subset_fonts,
-            ignore_cache,
-            vfont,
-            use_babeldoc,
-            recaptcha_response,
-            state,
-            *envs,
-        ],
-        outputs=[
-            output_file_mono,
-            preview,
-            output_file_dual,
-            output_file_mono,
-            output_file_dual,
-            output_title,
-        ],
+        inputs=translate_inputs,
+        outputs=translate_outputs,
     ).then(lambda: None, js="()=>{grecaptcha.reset()}" if flag_demo else "")
+
+    test_btn.click(
+        translate_test_file,
+        inputs=translate_inputs,
+        outputs=translate_outputs,
+    ).then(lambda: None, js="()=>{grecaptcha.reset()}" if flag_demo else "")
+
 
     cancellation_btn.click(
         stop_translate_file,
